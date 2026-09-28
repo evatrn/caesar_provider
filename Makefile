@@ -3,8 +3,7 @@
 
 CC = gcc
 src = caesar.c
-
 all: caesar
 
 caesar:
-	$(CC) -fPIC -shared $(src) -o caesar.so -lcrypto
+	$(CC) -fPIC -shared -DCOMMITID=\"00\" $(src) -o caesar.so -lcrypto
