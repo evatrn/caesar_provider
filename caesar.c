@@ -12,10 +12,21 @@
 #define SUCCESS 1
 #define FAILURE 0
 
+// Hook the functions
+// TODO: can this be merged with the function body?
+static OSSL_FUNC_provider_gettable_params_fn gettable_params;
+static OSSL_FUNC_provider_get_params_fn get_params;
 
-static const OSSL_DISPATCH caesar_functions[] = { { 0, NULL } };
+// Provider functions
+static const OSSL_DISPATCH provider_functions[] = { 
+    { OSSL_FUNC_PROVIDER_GETTABLE_PARAMS, (void (*)) gettable_params } ,
+    { OSSL_FUNC_PROVIDER_GET_PARAMS, (void (*))get_params},
+    {0, NULL} // TODO: is this an end marker?
+};
 
-static int caesar_get_params(void *provctx, OSSL_PARAM *params){
+// Return provider parameter values for parameters queried by OpenSSL
+// Only buildinfo implemented
+static int get_params(void *provctx, OSSL_PARAM *params){
     // Check if OpenSSL wants build info
     OSSL_PARAM *p = OSSL_PARAM_locate(params, OSSL_PROV_PARAM_BUILDINFO);
     // If yes, return commit ID
@@ -27,12 +38,21 @@ static int caesar_get_params(void *provctx, OSSL_PARAM *params){
     return SUCCESS;
 }
 
+// Return parameters that can be queried
+static const OSSL_PARAM *gettable_params(void *provctx){
+    static const OSSL_PARAM params[] = { 
+        OSSL_PARAM_utf8_ptr(OSSL_PROV_PARAM_BUILDINFO, NULL, 0),
+        OSSL_PARAM_END
+    };
+    return params;
+}
+
 int OSSL_provider_init(const OSSL_CORE_HANDLE *handle, // handle object used by OpenSSL
                     const OSSL_DISPATCH *in, // functions provided by OpenSSL
                     const OSSL_DISPATCH **out, // functions offered by this provider
                     void **provctx) // provider context
 {
-    *out = caesar_functions;
+    *out = provider_functions;
     return SUCCESS;
 }
 
